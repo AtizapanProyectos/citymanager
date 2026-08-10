@@ -25,8 +25,6 @@ SECRET_KEY = 'django-insecure-^nhri%za@%(6hn0%o0!e#k0j*ckimr-^2)st%2d#9k+$w&n#+r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -149,14 +147,6 @@ ALLOWED_HOSTS = [
     '0.0.0.0'
 ]
 
-# Esto es VITAL para que los formularios y el admin funcionen en producción
-# Permitimos el dominio oficial y localhost
-ALLOWED_HOSTS = [
-    'citymanager.atizapan.gob.mx',
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0'
-]
 
 # Configuración de CSRF para que funcionen los formularios
 CSRF_TRUSTED_ORIGINS = [
