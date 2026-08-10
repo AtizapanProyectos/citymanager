@@ -157,6 +157,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://citymanager.atizapan.gob.mx',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://citymanager-production-b13c.up.railway.app/',
 ]
 
 
