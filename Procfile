@@ -1,1 +1,1 @@
-web: python manage.py collectstatic --noinput && gunicorn city_manager.wsgi --log-file -
+python manage.py collectstatic --noinput && gunicorn city_manager.wsgi --bind 0.0.0.0:$PORT --log-file -
