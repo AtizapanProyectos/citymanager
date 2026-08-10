@@ -141,7 +141,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # o pon tu dominio específico como 'tu-sitio.com'
 ALLOWED_HOSTS = [
     'citymanager.atizapan.gob.mx',
-    'citymanager-production-b13c.up.railway.app', # <-- Agrega tu dominio de Railway aquí
+    'https://citymanager-production-3f87.up.railway.app', # <-- Agrega tu dominio de Railway aquí
     'localhost',
     '127.0.0.1',
     '0.0.0.0'
@@ -153,7 +153,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://citymanager.atizapan.gob.mx',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://citymanager-production-3f87.up.railway.app/',
+    'https://citymanager-production-3f87.up.railway.app',
 ]
 
 
