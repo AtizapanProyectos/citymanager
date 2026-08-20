@@ -43,6 +43,18 @@
         #burbuja-logo:hover { transform: scale(1.05); }
         #burbuja-logo img { width: 70%; height: auto; }
 
+        /* ── BURBUJA DE MENÚ (solo se ve en móvil) ── */
+        #burbuja-menu {
+            position: absolute; top: 25px; left: 25px; width: 60px; height: 60px;
+            background-color: var(--color-morado-oscuro); border-radius: 50%;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25); z-index: 1500;
+            display: none; justify-content: center; align-items: center;
+            cursor: pointer; color: var(--color-blanco); font-size: 26px;
+            transition: transform 0.25s ease;
+        }
+        #burbuja-menu:hover { transform: scale(1.08); }
+        #burbuja-menu.oculta { display: none !important; }
+
         #panel-flotante {
             position: absolute; top: 25px; left: 25px; width: 360px; max-height: 90vh;
             background-color: var(--color-blanco); border-radius: 20px;
@@ -51,12 +63,22 @@
         }
 
         .panel-header {
+            position: relative;
             background: linear-gradient(135deg, var(--color-fondo) 0%, var(--color-blanco) 100%);
             color: var(--color-blanco); padding: 25px 20px; text-align: center;
             font-size: 22px; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
         .panel-header img { width: 250px; height: auto; display: inline-block; }
+
+        /* Botón para cerrar el panel (solo aparece en móvil) */
+        #btn-cerrar-panel {
+            display: none;
+            position: absolute; top: 14px; right: 14px; width: 34px; height: 34px;
+            border-radius: 50%; border: none; background-color: var(--color-fondo);
+            color: var(--color-morado-oscuro); font-size: 16px; font-weight: bold;
+            cursor: pointer; align-items: center; justify-content: center;
+        }
 
         .panel-content {
             padding: 20px; overflow-y: auto;
@@ -116,9 +138,29 @@
         .punto-color { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
         .chk-capa { margin-right: 10px; cursor: pointer; transform: scale(1.1); }
         .texto-capa { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;}
+        .texto-capa .conteo { color: var(--color-texto-secundario); font-weight: 700; }
 
         .leaflet-popup-content-wrapper { border-radius: 12px; }
         .leaflet-popup-content b { color: var(--color-morado-oscuro); font-size: 15px;}
+
+        /* ══════════ RESPONSIVE MÓVIL ══════════ */
+        @media (max-width: 768px) {
+            /* El panel se oculta y se convierte en pantalla completa cuando se abre */
+            #panel-flotante {
+                display: none;
+                top: 0; left: 0; width: 100vw; height: 100vh; max-height: 100vh;
+                border-radius: 0; z-index: 2000;
+            }
+            #panel-flotante.mostrar { display: flex; }
+
+            /* La burbuja de menú se muestra en su lugar */
+            #burbuja-menu { display: flex; }
+
+            /* El botón de cerrar aparece dentro del panel */
+            #btn-cerrar-panel { display: flex; }
+
+            #burbuja-logo { width: 60px; height: 60px; top: 18px; right: 18px; }
+        }
     </style>
 </head>
 <body>
@@ -129,9 +171,15 @@
         <img src="{% static 'img/gota.PNG' %}" alt="Logo Institucional">
     </div>
 
+    <!-- Burbuja de menú: solo visible en móvil, abre el panel -->
+    <div id="burbuja-menu" onclick="togglePanelMovil()">
+        <span>☰</span>
+    </div>
+
     <div id="panel-flotante">
         <div class="panel-header">
             <img src="{% static 'img/logo.png' %}" alt="City Manager">
+            <button id="btn-cerrar-panel" onclick="togglePanelMovil()">✕</button>
         </div>
         
         <div class="panel-content">
@@ -318,6 +366,38 @@
         }
     }
 
+    // --- 4.b Contador de puntos por etiqueta (ej. "Albercas (3)") ---
+    function actualizarConteos() {
+        let conteos = {};
+        todosLosPuntos.forEach(p => {
+            conteos[p.subcategoria_id] = (conteos[p.subcategoria_id] || 0) + 1;
+        });
+
+        document.querySelectorAll('.chk-capa').forEach(cb => {
+            let nombreArea = (cb.getAttribute('data-nombre') || '').toUpperCase();
+
+            // Las capas especiales (polígonos) o de resueltos/pendientes no cuentan puntos individuales
+            let esEspecial = (nombreArea.includes("RESUELTOS") || nombreArea.includes("PENDIENTES"));
+            for (let clave in mapasEspeciales) { if (nombreArea.includes(clave)) esEspecial = true; }
+
+            let itemContenedor = cb.closest('.lista-item');
+            let span = itemContenedor ? itemContenedor.querySelector('.texto-capa') : null;
+            if (!span) return;
+
+            if (!span.dataset.original) {
+                span.dataset.original = span.textContent.trim();
+            }
+
+            if (esEspecial) {
+                span.textContent = span.dataset.original;
+            } else {
+                let id = parseInt(cb.value);
+                let cantidad = conteos[id] || 0;
+                span.innerHTML = `${span.dataset.original} <span class="conteo">(${cantidad})</span>`;
+            }
+        });
+    }
+
     // --- 5. Eventos y Carga de Datos ---
     function toggleAcordeon(elemento) {
         let wrapper = elemento.parentElement;
@@ -326,9 +406,16 @@
         contenido.style.maxHeight = wrapper.classList.contains('activo') ? contenido.scrollHeight + "px" : null;
     }
 
+    // --- Menú móvil tipo burbuja ---
+    function togglePanelMovil() {
+        document.getElementById('panel-flotante').classList.toggle('mostrar');
+        document.getElementById('burbuja-menu').classList.toggle('oculta');
+    }
+
     fetch('/api/puntos/').then(res => res.json()).then(data => {
         todosLosPuntos = data.puntos;
         actualizarMapa();
+        actualizarConteos();
     });
 
     document.querySelectorAll('.chk-capa').forEach(cb => {
@@ -342,7 +429,8 @@
         map.flyTo([19.55, -99.24], 13);
     });
 
-    document.getElementById('btn-autozoom').addEventListener('click', () => {
+    // Se protege con "?." porque este botón no existe en el HTML actual (evita error en consola)
+    document.getElementById('btn-autozoom')?.addEventListener('click', () => {
         let bounds = L.latLngBounds([]);
         if (capaMarcadores.getLayers().length > 0) bounds.extend(capaMarcadores.getBounds());
         if (bounds.isValid()) map.flyToBounds(bounds, { padding: [50, 50] });
